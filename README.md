@@ -70,8 +70,8 @@ uv sync
 cp .env.example .env
 # Edit .env with your API credentials
 
-# Run a script
-uv run python app/ingestion/spotify.py
+# Run a script 
+uv run --env-file env/.env.example python -m app.ingestion.spotify
 ```
 
 ## Environment Variables

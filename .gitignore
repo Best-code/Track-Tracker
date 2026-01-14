@@ -1,2 +1,9 @@
+# Environment variables
 /env
 .venv
+
+# pycache
+__pycache__/
+
+# Claude
+.claude

@@ -1,7 +1,7 @@
 [project]
 name = "track-tracker"
 version = "0.1.0"
-description = "Add your description here"
+description = "Data platform that detects emerging music tracks before they hit mainstream charts"
 readme = "README.md"
 requires-python = ">=3.14"
 dependencies = [
@@ -13,3 +13,6 @@ dependencies = [
     "sqlalchemy>=2.0.45",
     "uvicorn>=0.40.0",
 ]
+
+[project.scripts]
+track-tracker = "main:main"
