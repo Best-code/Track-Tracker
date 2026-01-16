@@ -15,18 +15,20 @@ from sqlalchemy.orm import Session
 from app.db.database import get_db, Base, get_engine
 from app.db.models import Track, TrackSnapshot
 
+
 @asynccontextmanager
-async def lifespan(app:  FastAPI):
+async def lifespan(app: FastAPI):
     """Create database tables on startup if they don't exist."""
     Base.metadata.create_all(bind=get_engine())
     yield
+
 
 # Create FastAPI app instance
 app = FastAPI(
     title="Track Tracker API",
     description="API for tracking Spotify track metrics over time",
     version="0.1.0",
-    lifespan=lifespan
+    lifespan=lifespan,
 )
 
 # CORS middleware - allows frontend to call this API
@@ -40,6 +42,7 @@ app.add_middleware(
     allow_methods=["*"],  # Allow all HTTP methods
     allow_headers=["*"],  # Allow all headers
 )
+
 
 @app.get("/")
 def root():

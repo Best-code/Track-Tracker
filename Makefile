@@ -1,7 +1,7 @@
 # Track Tracker Makefile
 # Common commands for development
 
-.PHONY: help install lint format test run serve init-db stats ingest clean
+.PHONY: help install lint format test run serve init-db stats ingest clean push
 
 # Environment file
 ENV_FILE = --env-file env/.env.development
@@ -20,6 +20,8 @@ help:
 	@echo "  make stats      Show database statistics"
 	@echo "  make ingest     Run Spotify ingestion"
 	@echo "  make clean      Remove cached files"
+	@echo "  make push m=\"msg\" Format, commit, and push to git"
+	@echo "  make psql       Open PostgreSQL shell"
 	@echo ""
 
 # Install dependencies
@@ -70,3 +72,12 @@ clean:
 # Access PostgreSQL directly
 psql:
 	docker exec -it track-tracker-db psql -U tracker -d track_tracker
+
+# Format, add, commit, and push (usage: make push m="commit message")
+m ?= Auto-formatted and pushed
+push:
+	uv run ruff format .
+	uv run ruff check --fix .
+	git add .
+	git commit -m "$(m)"
+	git push
