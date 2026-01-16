@@ -32,12 +32,7 @@ def get_top_tracks(db: Session, limit: int = 10) -> list[Track]:
     Returns:
         List of Track objects ordered by popularity descending
     """
-    return (
-        db.query(Track)
-        .order_by(Track.popularity.desc())
-        .limit(limit)
-        .all()
-    )
+    return db.query(Track).order_by(Track.popularity.desc()).limit(limit).all()
 
 
 def get_recent_snapshots(db: Session, limit: int = 5) -> list[TrackSnapshot]:
@@ -87,7 +82,9 @@ def show_stats() -> None:
             track = snapshot.track
             track_name = track.name[:30] if track else "Unknown"
             artist = track.artist if track else "Unknown"
-            print(f"  {snapshot.timestamp} | {track_name} | {artist} | pop: {snapshot.popularity}")
+            print(
+                f"  {snapshot.timestamp} | {track_name} | {artist} | pop: {snapshot.popularity}"
+            )
 
 
 if __name__ == "__main__":

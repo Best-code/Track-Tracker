@@ -24,8 +24,7 @@ def setup_logging(verbose: bool = False) -> None:
     """Configure logging for the application."""
     level = logging.DEBUG if verbose else logging.INFO
     logging.basicConfig(
-        level=level,
-        format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+        level=level, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
     )
 
 
@@ -34,7 +33,9 @@ def cmd_ingest(args: argparse.Namespace) -> int:
     from app.ingestion.spotify.spotify_to_db import ingest_new_releases
 
     result = ingest_new_releases(limit=args.limit)
-    print(f"Ingested {result.tracks_processed} tracks, {result.snapshots_created} snapshots")
+    print(
+        f"Ingested {result.tracks_processed} tracks, {result.snapshots_created} snapshots"
+    )
 
     if result.errors > 0:
         print(f"Encountered {result.errors} errors during ingestion")
@@ -64,9 +65,7 @@ def main() -> int:
         description="Track Tracker - Detect emerging music before it charts"
     )
     parser.add_argument(
-        "-v", "--verbose",
-        action="store_true",
-        help="Enable verbose logging"
+        "-v", "--verbose", action="store_true", help="Enable verbose logging"
     )
 
     subparsers = parser.add_subparsers(dest="command", help="Available commands")
@@ -74,10 +73,7 @@ def main() -> int:
     # Ingest command
     ingest_parser = subparsers.add_parser("ingest", help="Run Spotify ingestion")
     ingest_parser.add_argument(
-        "--limit",
-        type=int,
-        default=20,
-        help="Number of albums to fetch (default: 20)"
+        "--limit", type=int, default=20, help="Number of albums to fetch (default: 20)"
     )
     ingest_parser.set_defaults(func=cmd_ingest)
 

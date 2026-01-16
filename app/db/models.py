@@ -51,20 +51,17 @@ class Track(Base):
     album: Mapped[Optional[str]] = Column(String(500))
     popularity: Mapped[Optional[int]] = Column(Integer)
     first_seen: Mapped[datetime] = Column(
-        DateTime(timezone=True),
-        default=lambda: datetime.now(timezone.utc)
+        DateTime(timezone=True), default=lambda: datetime.now(timezone.utc)
     )
     last_updated: Mapped[datetime] = Column(
         DateTime(timezone=True),
         default=lambda: datetime.now(timezone.utc),
-        onupdate=lambda: datetime.now(timezone.utc)
+        onupdate=lambda: datetime.now(timezone.utc),
     )
 
     # Relationship to snapshots
     snapshots: Mapped[List["TrackSnapshot"]] = relationship(
-        "TrackSnapshot",
-        back_populates="track",
-        cascade="all, delete-orphan"
+        "TrackSnapshot", back_populates="track", cascade="all, delete-orphan"
     )
 
     def __repr__(self) -> str:
@@ -96,14 +93,11 @@ class TrackSnapshot(Base):
 
     id: Mapped[int] = Column(Integer, primary_key=True, autoincrement=True)
     track_id: Mapped[str] = Column(
-        String,
-        ForeignKey("tracks.id", ondelete="CASCADE"),
-        nullable=False
+        String, ForeignKey("tracks.id", ondelete="CASCADE"), nullable=False
     )
     popularity: Mapped[Optional[int]] = Column(Integer)
     timestamp: Mapped[datetime] = Column(
-        DateTime(timezone=True),
-        default=lambda: datetime.now(timezone.utc)
+        DateTime(timezone=True), default=lambda: datetime.now(timezone.utc)
     )
 
     # Relationship to parent track

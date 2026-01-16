@@ -32,6 +32,7 @@ logger = logging.getLogger(__name__)
 @dataclass
 class IngestionResult:
     """Results from an ingestion run."""
+
     tracks_processed: int
     snapshots_created: int
     errors: int
@@ -53,8 +54,7 @@ def get_spotify_client() -> spotipy.Spotify:
     client_secret = os.environ["SPOTIFY_CLIENT_SECRET"]
 
     auth_manager = SpotifyClientCredentials(
-        client_id=client_id,
-        client_secret=client_secret
+        client_id=client_id, client_secret=client_secret
     )
     return spotipy.Spotify(auth_manager=auth_manager)
 
@@ -102,7 +102,7 @@ def ingest_new_releases(limit: int = 20, batch_size: int = 50) -> IngestionResul
                             name=track_data["name"],
                             artist=track_data["artists"][0]["name"],
                             album=album["name"],
-                            popularity=track_data["popularity"]
+                            popularity=track_data["popularity"],
                         )
                         db.merge(track)
                         result.tracks_processed += 1
@@ -110,7 +110,7 @@ def ingest_new_releases(limit: int = 20, batch_size: int = 50) -> IngestionResul
                         # Create snapshot for time-series tracking
                         snapshot = TrackSnapshot(
                             track_id=track_data["id"],
-                            popularity=track_data["popularity"]
+                            popularity=track_data["popularity"],
                         )
                         db.add(snapshot)
                         result.snapshots_created += 1
@@ -121,14 +121,20 @@ def ingest_new_releases(limit: int = 20, batch_size: int = 50) -> IngestionResul
                         if pending_count >= batch_size:
                             db.flush()
                             pending_count = 0
-                            logger.debug(f"Flushed batch, processed {result.tracks_processed} tracks")
+                            logger.debug(
+                                f"Flushed batch, processed {result.tracks_processed} tracks"
+                            )
 
                     except Exception as e:
-                        logger.error(f"Error processing track {item.get('id', 'unknown')}: {e}")
+                        logger.error(
+                            f"Error processing track {item.get('id', 'unknown')}: {e}"
+                        )
                         result.errors += 1
 
             except Exception as e:
-                logger.error(f"Error processing album {album.get('id', 'unknown')}: {e}")
+                logger.error(
+                    f"Error processing album {album.get('id', 'unknown')}: {e}"
+                )
                 result.errors += 1
 
     logger.info(
@@ -142,7 +148,9 @@ def ingest_new_releases(limit: int = 20, batch_size: int = 50) -> IngestionResul
 if __name__ == "__main__":
     logging.basicConfig(
         level=logging.INFO,
-        format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+        format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
     )
     result = ingest_new_releases()
-    print(f"Ingested {result.tracks_processed} tracks, {result.snapshots_created} snapshots")
+    print(
+        f"Ingested {result.tracks_processed} tracks, {result.snapshots_created} snapshots"
+    )

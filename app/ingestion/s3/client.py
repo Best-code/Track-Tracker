@@ -34,10 +34,7 @@ def get_s3_client() -> boto3.client:
     Returns:
         boto3 S3 client instance
     """
-    return boto3.client(
-        "s3",
-        region_name=os.environ.get("AWS_REGION", "us-east-1")
-    )
+    return boto3.client("s3", region_name=os.environ.get("AWS_REGION", "us-east-1"))
 
 
 def upload_json(bucket: str, key: str, data: dict[str, Any]) -> None:
@@ -58,7 +55,7 @@ def upload_json(bucket: str, key: str, data: dict[str, Any]) -> None:
         Bucket=bucket,
         Key=key,
         Body=json.dumps(data, indent=2, default=str),
-        ContentType="application/json"
+        ContentType="application/json",
     )
 
     logger.info(f"Uploaded to s3://{bucket}/{key}")

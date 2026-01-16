@@ -1,54 +1,148 @@
 """
-Spotify API connectivity tests.
+Spotify ingestion tests with mocked API.
 
-Validates that the Spotify API credentials are configured correctly
-and that key API endpoints are accessible.
+Tests the Spotify ingestion pipeline without hitting the real API.
 
 Usage:
+    uv run python -m pytest tests/test_spotify.py
     uv run python -m tests.test_spotify
 """
 
-from app.ingestion.spotify.spotify_to_db import get_spotify_client
+from unittest.mock import Mock, patch
+
+from app.ingestion.spotify.spotify_to_db import (
+    get_spotify_client,
+    ingest_new_releases,
+    IngestionResult,
+)
 
 
-def run_api_tests() -> None:
-    """
-    Execute connectivity tests against Spotify API endpoints.
+# Sample mock data matching Spotify API response structure
+MOCK_TRACK = {
+    "id": "track123",
+    "name": "Test Track",
+    "artists": [{"name": "Test Artist"}],
+    "popularity": 75,
+}
 
-    Tests search, track retrieval, album retrieval, artist retrieval,
-    and new releases endpoints to verify API access.
-    """
-    print("Running Spotify API tests...\n")
-    sp = get_spotify_client()
+MOCK_ALBUM = {
+    "id": "album123",
+    "name": "Test Album",
+}
 
-    # Test 1: Search
-    print("1. Search: ", end="")
-    results = sp.search(q="Kendrick", type="track", limit=1)
-    results
+MOCK_NEW_RELEASES = {
+    "albums": {
+        "items": [
+            {"id": "album123", "name": "Test Album"},
+            {"id": "album456", "name": "Another Album"},
+        ]
+    }
+}
+
+MOCK_ALBUM_TRACKS = {
+    "items": [
+        {"id": "track123", "name": "Test Track"},
+        {"id": "track456", "name": "Another Track"},
+    ]
+}
+
+
+def test_get_spotify_client() -> None:
+    """Test that Spotify client is created with correct credentials."""
+    with (
+        patch(
+            "app.ingestion.spotify.spotify_to_db.SpotifyClientCredentials"
+        ) as mock_creds,
+        patch("app.ingestion.spotify.spotify_to_db.spotipy.Spotify") as mock_spotify,
+        patch.dict(
+            "os.environ",
+            {"SPOTIFY_CLIENT_ID": "test_id", "SPOTIFY_CLIENT_SECRET": "test_secret"},
+        ),
+    ):
+        client = get_spotify_client()
+        client
+
+        mock_creds.assert_called_once_with(
+            client_id="test_id", client_secret="test_secret"
+        )
+        mock_spotify.assert_called_once()
+
+
+def test_ingest_new_releases() -> None:
+    """Test ingestion pipeline with mocked Spotify API and database."""
+    mock_spotify = Mock()
+    mock_spotify.new_releases.return_value = MOCK_NEW_RELEASES
+    mock_spotify.album_tracks.return_value = MOCK_ALBUM_TRACKS
+    mock_spotify.track.return_value = MOCK_TRACK
+
+    with (
+        patch(
+            "app.ingestion.spotify.spotify_to_db.get_spotify_client",
+            return_value=mock_spotify,
+        ),
+        patch("app.ingestion.spotify.spotify_to_db.get_db_context") as mock_db_context,
+    ):
+        # Setup mock database session
+        mock_session = Mock()
+        mock_db_context.return_value.__enter__ = Mock(return_value=mock_session)
+        mock_db_context.return_value.__exit__ = Mock(return_value=False)
+
+        result = ingest_new_releases(limit=2)
+
+        # Verify API was called correctly
+        mock_spotify.new_releases.assert_called_once_with(limit=2)
+        assert mock_spotify.album_tracks.call_count == 2  # Two albums
+        assert mock_spotify.track.call_count == 4  # Two tracks per album
+
+        # Verify result
+        assert isinstance(result, IngestionResult)
+        assert result.tracks_processed == 4
+        assert result.snapshots_created == 4
+        assert result.errors == 0
+
+
+def test_ingest_handles_api_errors() -> None:
+    """Test that ingestion handles API errors gracefully."""
+    mock_spotify = Mock()
+    mock_spotify.new_releases.return_value = MOCK_NEW_RELEASES
+    mock_spotify.album_tracks.side_effect = Exception("API Error")
+
+    with (
+        patch(
+            "app.ingestion.spotify.spotify_to_db.get_spotify_client",
+            return_value=mock_spotify,
+        ),
+        patch("app.ingestion.spotify.spotify_to_db.get_db_context") as mock_db_context,
+    ):
+        mock_session = Mock()
+        mock_db_context.return_value.__enter__ = Mock(return_value=mock_session)
+        mock_db_context.return_value.__exit__ = Mock(return_value=False)
+
+        result = ingest_new_releases(limit=2)
+
+        # Should have errors but not crash
+        assert result.errors == 2  # Both albums failed
+        assert result.tracks_processed == 0
+
+
+def run_tests() -> None:
+    """Run all Spotify tests."""
+    print("Running Spotify tests (mocked)...\n")
+
+    print("1. test_get_spotify_client: ", end="")
+    test_get_spotify_client()
     print("OK")
 
-    # Test 2: Get track by ID
-    print("2. Get track: ", end="")
-    track = sp.track("4VXIryQMWpIdGgYR4TrjT1")
-    print(f"OK - {track['name']}")
+    print("2. test_ingest_new_releases: ", end="")
+    test_ingest_new_releases()
+    print("OK")
 
-    # Test 3: Get album
-    print("3. Get album: ", end="")
-    album = sp.album("4yP0hdKOZPNshxUOjY0cZj")
-    print(f"OK - {album['name']}")
+    print("3. test_ingest_handles_api_errors: ", end="")
+    test_ingest_handles_api_errors()
+    print("OK")
 
-    # Test 4: Get artist
-    print("4. Get artist: ", end="")
-    artist = sp.artist("2YZyLoL8N0Wb9xBt1NhZWg")
-    print(f"OK - {artist['name']}")
-
-    # Test 5: New releases
-    print("5. New releases: ", end="")
-    new = sp.new_releases(limit=3)
-    print(f"OK - {len(new['albums']['items'])} albums")
-
-    print("\nAll Spotify API tests passed!")
+    print("\nAll Spotify tests passed!")
 
 
 if __name__ == "__main__":
-    run_api_tests()
+    run_tests()
