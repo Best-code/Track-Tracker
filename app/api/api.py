@@ -14,7 +14,7 @@ from fastapi.middleware.cors import CORSMiddleware
 app = FastAPI(
     title="Track Tracker API",
     description="API for tracking Spotify track metrics over time",
-    version="0.1.0"
+    version="0.1.0",
 )
 
 # CORS middleware - allows frontend to call this API

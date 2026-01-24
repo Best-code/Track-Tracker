@@ -32,6 +32,9 @@ install:
 lint:
 	uv run ruff check .
 
+lint-fix:
+	uv run ruff check . --fix
+
 # Format code (no env needed)
 format:
 	uv run ruff format .
