@@ -4,7 +4,7 @@ A data platform that detects emerging music tracks before they hit mainstream ch
 
 ## Overview
 
-Track Tracker aggregates signals across music platforms to identify rising songs early. By polling playlist additions and tracking cross-platform momentum, we surface tracks days before they appear on official charts.
+Track Tracker aggregates signals across music platforms to identify rising songs early. By polling playlist additions and tracking platform momentum, we surface tracks days before they appear on official charts.
 
 ## Tech Stack
 
@@ -12,16 +12,17 @@ Track Tracker aggregates signals across music platforms to identify rising songs
 |-----------|------------|
 | Ingestion | Python, Spotify API, Soundcloud API |
 | Storage | S3 (raw data), PostgreSQL (processed) |
-| Orchestration | Airflow |
+<!-- | Orchestration | Airflow | -->
 | Serving | FastAPI |
 | Frontend | Next.JS |
-| Infrastructure | Docker, Terraform, AWS |
+<!-- | Infrastructure | Docker, Terraform, AWS | -->
+| Infrastructure | AWS |
 
 ## Architecture
 ```
-Spotify API ──┐
-              ├──▶ S3 (raw) ──▶ PostgreSQL ──▶ FastAPI ──▶ Next.JS
-Soundcloud ───┘                     
+Spotify API   ──┐
+                ├──▶ S3 (raw) ──▶ PostgreSQL ──▶ FastAPI ──▶ Next.JS
+Web Scraping ───┘                     
 ```
 
 ## Project Structure
@@ -31,7 +32,6 @@ track-tracker/
 │   ├── ingestion/          # API polling scripts
 │   ├── processing/         # Data transformation
 │   ├── api/                # FastAPI backend
-│   ├── airflow/            # DAG definitions
 │   └── infrastructure/     # Terraform configs
 ├── tests/
 ├── env/
@@ -56,7 +56,7 @@ track-tracker/
 ### Installation
 ```bash
 # Clone repo
-git clone https://github.com/Best-Code/track-tracker.git
+git clone https://github.com/colinpmaloney/track-tracker.git
 cd track-tracker-backend
 
 # Install UV (if not installed)
@@ -75,15 +75,27 @@ uv run --env-file env/.env.example python -m app.ingestion.spotify
 
 ## Environment Variables
 ```
-SPOTIFY_CLIENT_ID=your_client_id
-SPOTIFY_CLIENT_SECRET=your_client_secret
-AWS_REGION=us-east-1
-DATABASE_URL=postgresql://user:pass@host:5432/tracktracker
+# AWS
+AWS_ACCESS_KEY=
+AWS_SECRET_ACCESS_KEY=
+AWS_REGION=
+S3_RAW_BUCKET=
+S3_PROCESSED_BUCKET=
+
+# DATABASE
+DATABASE_URL=
+
+# SPOTIFY
+SPOTIFY_CLIENT_ID=
+SPOTIFY_CLIENT_SECRET=
 ```
 
 ## Team
 
+- [Alex Nino] - Back End Engineer
 - [Colin Maloney] - Data Engineer
+- [Kobus VanSteenburg] - Front End Engineer
+- [Samuel Pauley] - Front End Engineer
 
 
 ## License
