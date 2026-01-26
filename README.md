@@ -96,6 +96,7 @@ SPOTIFY_CLIENT_SECRET=
 - [Colin Maloney] - Data Engineer
 - [Kobus VanSteenburg] - Front End Engineer
 - [Samuel Pauley] - Front End Engineer
+- [Zachary Kupersmith] - Database / Systems Engineer
 
 
 ## License
