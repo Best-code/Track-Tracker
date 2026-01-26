@@ -13,39 +13,19 @@ from fastapi import Depends, FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 
+from .config import APP_CONFIG, CORS_CONFIG
+from ..db.place_holder_users import (
+    fake_users_db,
+)  # This is a placeholder just so I could test the OAuth stuff
 from .models import UserInDB
 
-fake_users_db = {
-    "colinm": {
-        "username": "colinm",
-        "full_name": "Colin Maloney",
-        "email": "cpm22h@fsu.edu",
-        "hashed_password": "password",
-        "disabled": False,
-    },
-}
-
 # Create FastAPI app instance
-app = FastAPI(
-    title="Track Tracker API",
-    description="API for tracking Spotify track metrics over time",
-    version="0.1.0",
-)
+app = FastAPI(**APP_CONFIG)
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
-
 # CORS middleware - allows frontend to call this API
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=[
-        "http://localhost:3000",  # Next.js dev server
-        "http://127.0.0.1:3000",
-    ],
-    allow_credentials=True,
-    allow_methods=["*"],  # Allow all HTTP methods
-    allow_headers=["*"],  # Allow all headers
-)
+app.add_middleware(CORSMiddleware, **CORS_CONFIG)
 
 
 @app.get("/")
@@ -65,3 +45,7 @@ async def login(form_data: Annotated[OAuth2PasswordRequestForm, Depends()]):
         raise HTTPException(status_code=400, detail="Incorrect username or password")
 
     return {"access_token": user.username, "token_type": "bearer"}
+
+@app.get("/test/")
+async def test(token: Annotated[str, Depends(oauth2_scheme)]):
+    return {"token": token}
