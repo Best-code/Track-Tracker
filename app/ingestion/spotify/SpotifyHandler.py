@@ -37,7 +37,7 @@ class SpotifyHandler:
     def client(self) -> spotipy.Spotify:
         return self._client
     """ User functions """
-    def get_current_user_profile(self) -> dict:
+    def get_current_user_profile(self) -> list[dict]:
         return self.client.current_user()
 
     def get_user_playlists(self) -> dict:
@@ -105,7 +105,7 @@ class SpotifyHandler:
         for item in results:
             track_data = item["track"]
             if track_data:
-                tracks.append(self.parse_track(track_data))
+                tracks.append(self._parse_track(track_data))
         return tracks
 
     
